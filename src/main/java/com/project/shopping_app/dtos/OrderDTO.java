@@ -11,8 +11,8 @@ import lombok.*;
 @NoArgsConstructor
 public class OrderDTO {
 
+  @JsonProperty("user_id")
   @Min(value = 1, message = "UserID must be > 0")
-  @JsonProperty(namespace = "user_id")
   private Long userId;
 
   @JsonProperty(namespace = "fullname")
@@ -20,7 +20,7 @@ public class OrderDTO {
 
   private String email;
 
-  @JsonProperty(namespace = "phone_number")
+  @JsonProperty("phone_number")
   @NotBlank(message = "Phone number required!")
   private String phoneNumber;
 
@@ -28,16 +28,16 @@ public class OrderDTO {
 
   private String note;
 
-  @JsonProperty(namespace = "total_money")
+  @JsonProperty("total_money")
   private Float totalMoney;
 
-  @JsonProperty(namespace = "shipping_method")
+  @JsonProperty("shipping_method")
   private String shippingMethod;
 
-  @JsonProperty(namespace = "shipping_address")
+  @JsonProperty("shipping_address")
   private String shippingAddress;
 
-  @JsonProperty(namespace = "payment_method")
+  @JsonProperty("payment_method")
   private String paymentMethod;
 
 }

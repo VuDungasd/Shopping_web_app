@@ -25,7 +25,7 @@ import java.util.UUID;
 import java.nio.file.Path;
 
 @RestController
-@RequestMapping("api/v1/products")
+@RequestMapping("${api.prefix}/products")
 @Validated
 public class ProductController {
 

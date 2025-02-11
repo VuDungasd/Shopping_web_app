@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("${api.prefix}/users")
 public class UserController {
   @GetMapping("")
   public String getAllUser(@RequestPart("page") int page, @RequestPart("limit") int limit) {
