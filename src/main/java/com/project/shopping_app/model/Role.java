@@ -6,18 +6,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Entity
-@Table(name = "categories")
-@AllArgsConstructor
+@Data
+@Table(name = "roles")
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class Category {
+public class Role {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(name = "name", nullable = false)
   private String name;
-  
 }

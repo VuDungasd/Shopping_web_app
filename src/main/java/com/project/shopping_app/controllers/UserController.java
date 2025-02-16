@@ -2,7 +2,9 @@ package com.project.shopping_app.controllers;
 
 
 import com.project.shopping_app.dtos.UserDTO;
+import com.project.shopping_app.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -13,7 +15,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/users")
+@RequiredArgsConstructor
 public class UserController {
+
+  private final UserService userService;
+
   @GetMapping("")
   public String getAllUser(@RequestPart("page") int page, @RequestPart("limit") int limit) {
     return "Page: " + page + ", Limit: " + limit;
@@ -33,6 +39,7 @@ public class UserController {
       if(!userDTO.getRetypePassword().equals(userDTO.getPassword())){
         return ResponseEntity.badRequest().body("Password does not match");
       }
+      userService.createUser(userDTO);
       return ResponseEntity.ok("Register user successfully");
     }catch (Exception e){
       return ResponseEntity.badRequest().body(e.getMessage());
@@ -43,8 +50,9 @@ public class UserController {
   public ResponseEntity<String> loginUser(@Valid @RequestBody UserDTO userDTO) {
     try{
       // kiem tra thong tin dang nhap + sinh token
+      String token = userService.login(userDTO.getPhoneNumber(), userDTO.getPassword());
       // tra ve token trong response
-      return ResponseEntity.ok("Login user successfully");
+      return ResponseEntity.ok(token);
     }catch (Exception e){
       return ResponseEntity.badRequest().body(e.getMessage());
     }

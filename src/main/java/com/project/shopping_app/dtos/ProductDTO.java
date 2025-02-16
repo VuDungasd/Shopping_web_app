@@ -26,8 +26,10 @@ public class ProductDTO {
   @Min(value = 0, message = "Product must be greater than or equal to 0")
   private double price;
 
+  private String thumbnail;
+
   @JsonProperty("category_id")
-  private String categoryId;
+  private Long categoryId;
 
   private List<MultipartFile> files;
 }

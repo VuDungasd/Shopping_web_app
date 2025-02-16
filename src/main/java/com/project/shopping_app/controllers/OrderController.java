@@ -39,7 +39,7 @@ public class OrderController {
     }
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/{order_id}")
   public ResponseEntity<?> getOrderById(@PathVariable("order_id") Long orderId) {
     try{
       return ResponseEntity.ok("Order ID: " + orderId);
@@ -48,7 +48,7 @@ public class OrderController {
     }
   }
 
-  @GetMapping("/{user_id}")
+  @GetMapping("userid/{user_id}")
   public ResponseEntity<?> getOrdersByUserId(@Valid @PathVariable("user_id") Long userId) {
     try{
       return ResponseEntity.ok("Get all order from user_id ");

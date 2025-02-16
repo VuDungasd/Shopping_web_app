@@ -40,6 +40,6 @@ public class UserDTO {
   private Integer googleAccountId;
 
   @JsonProperty("role_id")
-  private Long role;
+  private Long roleID;
 
 }

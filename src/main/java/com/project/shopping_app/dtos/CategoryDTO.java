@@ -10,5 +10,4 @@ import org.apache.logging.log4j.message.Message;
 public class CategoryDTO {
   @NotEmpty(message = "Not empty in product name!")
   private String name;
-  private String description;
 }
