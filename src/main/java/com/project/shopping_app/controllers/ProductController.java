@@ -5,6 +5,9 @@ import com.project.shopping_app.dtos.ProductDTO;
 import com.project.shopping_app.dtos.ProductImageDTO;
 import com.project.shopping_app.model.Product;
 import com.project.shopping_app.model.ProductImage;
+import com.project.shopping_app.response.ProductListResponse;
+import com.project.shopping_app.response.ProductResponse;
+import com.project.shopping_app.service.ProductCodeGeneratorService;
 import com.project.shopping_app.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +32,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
@@ -43,27 +45,34 @@ import java.nio.file.Path;
 public class ProductController {
 
   private final ProductService productService;
+  private final ProductCodeGeneratorService productCodeGeneratorService;
 
   @GetMapping("")
-  public ResponseEntity<?> getAllProduct(
+  public ResponseEntity<ProductListResponse> getAllProduct(
         @RequestParam("page") int page,
         @RequestParam("limit") int limit) {
     PageRequest pageRequest = PageRequest.of(
           page, limit,
           Sort.by(Sort.Direction.ASC, "createdAt").descending());
-//    PageRequest pageRequest = PageRequest.of(
-//          page, limit,
-//          Sort.by(Sort.Direction.DESC, "createdAt").descending());
-    Page<Product> productPage = productService.getAllProducts(pageRequest);
+    Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
     // get total page
     int totalPages = productPage.getTotalPages();
-    List<Product> products = productPage.getContent();
-    return ResponseEntity.ok(products);
+    List<ProductResponse> products = productPage.getContent();
+    return ResponseEntity.ok(ProductListResponse.builder()
+                .products(products)
+                .totalProducts(totalPages)
+                .build()
+    );
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<?> getProductById(@PathVariable("id") Long id) {
-    return ResponseEntity.ok(productService.getProductById(id));
+    try{
+      Product product = productService.getProductById(id);
+      return ResponseEntity.ok(ProductResponse.fromProduct(product));
+    }catch (Exception e){
+      return ResponseEntity.badRequest().body(e.getMessage());
+    }
   }
 
   @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -131,6 +140,16 @@ public class ProductController {
     }
   }
 
+  @DeleteMapping("/delete/{id}")
+  public ResponseEntity<?> deleteProduct(@PathVariable("id") Long id) {
+    try{
+      productService.deleteProduct(id);
+      return ResponseEntity.ok("delete susscessfully with productID = " + id);
+    }catch (Exception e){
+      return ResponseEntity.badRequest().body(e.getMessage());
+    }
+  }
+
   //  @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   private String storeFile(MultipartFile file) throws IOException {
 
@@ -161,13 +180,57 @@ public class ProductController {
     }
 
 
-    // fake data
-  @PostMapping("/generateFakeProducts")
-  public ResponseEntity<?> generateFakeProducts(){
-    Faker faker = new Faker();
-    for (int i = 0; i < 1_000_000; i++) {
-      productService.createProduct()
+    // fake data products
+    @PostMapping("/generateFakeProducts")
+    public ResponseEntity<?> generateFakeProducts() {
+      int totalProducts = 1_000_000;
+      int batchSize = 10_000;  // Chia nhỏ thành batch để insert tối ưu hơn
+      int numThreads = Runtime.getRuntime().availableProcessors();  // Số luồng dựa trên CPU
+
+      ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+      Faker faker = new Faker();
+      Random random = new Random();
+
+      for (int i = 0; i < totalProducts; i += batchSize) {
+        int start = i;
+        executor.submit(() -> {
+          List<ProductDTO> batchProducts = new ArrayList<>();
+          for (int j = start; j < start + batchSize && j < totalProducts; j++) {
+            String productName = faker.commerce().productName();
+            long categoryId = faker.number().numberBetween(1, 4);
+
+            // Kiểm tra nếu tên đã tồn tại, bỏ qua
+            if (productService.existByName(productName)) {
+              continue;
+            }
+
+            // Sinh mã sản phẩm
+            String productCode = productCodeGeneratorService.generateProductCode(productName, categoryId);
+
+            ProductDTO productDTO = ProductDTO.builder()
+                  .code(productCode)
+                  .name(productName)
+                  .price((float) faker.number().numberBetween(10, 90_000_000))
+                  .thumbnail(faker.internet().image())
+                  .description(faker.lorem().sentence())
+                  .categoryId(categoryId)
+                  .build();
+
+            batchProducts.add(productDTO);
+          }
+
+          // Lưu danh sách sản phẩm trong batch (có thể tối ưu với batch insert)
+          try {
+            productService.createMultipleProducts(batchProducts);
+          } catch (Exception e) {
+            log.error("Error inserting batch products: ", e);
+          }
+        });
+      }
+
+      executor.shutdown();
+      return ResponseEntity.ok("Generating products in background...");
     }
-    return ResponseEntity.ok("Generate fake products");
-  }
-  }
+
+
+}

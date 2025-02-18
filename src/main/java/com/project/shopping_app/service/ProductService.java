@@ -5,6 +5,7 @@ import com.project.shopping_app.dtos.ProductImageDTO;
 import com.project.shopping_app.exceptions.DataNotFoundException;
 import com.project.shopping_app.model.Product;
 import com.project.shopping_app.model.ProductImage;
+import com.project.shopping_app.response.ProductResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -16,7 +17,7 @@ public interface ProductService {
 
   public Product getProductById(Long id);
 
-  Page<Product> getAllProducts(PageRequest pageRequest);
+  Page<ProductResponse> getAllProducts(PageRequest pageRequest);
 
   Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException;
 
@@ -27,4 +28,7 @@ public interface ProductService {
   public ProductImage createProductImage(
         Long productID,
         ProductImageDTO productImageDTO) throws Exception;
+
+  public void createMultipleProducts(List<ProductDTO> productDTOList) throws DataNotFoundException;
+
 }

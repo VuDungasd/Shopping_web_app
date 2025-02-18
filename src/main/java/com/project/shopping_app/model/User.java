@@ -1,9 +1,12 @@
 package com.project.shopping_app.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
@@ -33,8 +36,8 @@ public class User extends BaseEntity {
   @Column(name = "is_active")
   private Boolean isActive;
 
-  @Column(name = "date_of_birt")
-  private Date dateOfBirth;
+  @Column(name = "date_of_birth")
+  private LocalDate dateOfBirth;
 
   @Column(name = "facebook_account_id")
   private Integer facebookAccountId;

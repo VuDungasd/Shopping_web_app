@@ -2,11 +2,9 @@ package com.project.shopping_app.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "products")
@@ -32,6 +30,9 @@ public class Product extends BaseEntity {
 
   @Column(name = "description")
   private String description;
+
+  @Column(name = "active")
+  private Boolean active = true;
 
   @ManyToOne
   @JoinColumn(name = "category_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_product_category"))

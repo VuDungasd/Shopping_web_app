@@ -23,7 +23,7 @@ public class OrderDetailDTO {
 
   @JsonProperty("price")
   @Min(value = 1, message = "price >= 0")
-  private String price;
+  private double price;
 
   @JsonProperty("number_of_products")
   @Min(value = 1, message = "quantity >= 1")
@@ -32,7 +32,7 @@ public class OrderDetailDTO {
 
   @JsonProperty("total_money")
   @Min(value = 1, message = "total money >= 0")
-  private String totalMoney;
+  private Double totalMoney;
 
   @JsonProperty("color")
   private String color;

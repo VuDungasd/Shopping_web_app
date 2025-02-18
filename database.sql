@@ -9,8 +9,8 @@ CREATE TABLE users(
     phone_number VARCHAR(10) NOT NULL,
     address VARCHAR(200) DEFAULT '',
     password VARCHAR(200) NOT NULL DEFAULT '',
-    created_at DATETIME,
-    updated_at DATETIME,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     is_active TINYINT(1) DEFAULT 1,
     date_of_birth DATE,
     facebook_account_id INT DEFAULT 0,
@@ -66,8 +66,11 @@ CREATE TABLE products(
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     category_id INT,
+    active tinyint(1),
     FOREIGN KEY(category_id) REFERENCES categories(id)
 );
+
+ALTER TABLE products ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1;
 
 CREATE TABLE product_images(
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -90,12 +93,18 @@ CREATE TABLE orders(
     status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') COMMENT 'trang thai don hang',
     active tinyint(1),
     total_money FLOAT CHECK ( total_money >= 0 ),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     shipping_method VARCHAR(100) NOT NULL,
     shipping_address VARCHAR(100) NOT NULL,
     shipping_date TIMESTAMP,
     tracking_number VARCHAR(100) COMMENT 'max van don',
     payment_method VARCHAR(100) NOT NULL
 );
+
+ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE users ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
 
 CREATE TABLE order_details(
     id INT PRIMARY KEY AUTO_INCREMENT,

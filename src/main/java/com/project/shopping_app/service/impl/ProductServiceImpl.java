@@ -10,6 +10,8 @@ import com.project.shopping_app.model.ProductImage;
 import com.project.shopping_app.repository.CategoryRepository;
 import com.project.shopping_app.repository.ProductImageRepository;
 import com.project.shopping_app.repository.ProductRepository;
+import com.project.shopping_app.response.ProductResponse;
+import com.project.shopping_app.service.ProductCodeGeneratorService;
 import com.project.shopping_app.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,6 +31,7 @@ public class ProductServiceImpl implements ProductService {
   private final CategoryRepository categoryRepository;
   private final ProductRepository productRepository;
   private final ProductImageRepository productImageRepository;
+  private final ProductCodeGeneratorService productCodeGeneratorService;
 
   @Override
   public Product createProduct(ProductDTO productDTO) throws Exception {
@@ -34,12 +39,13 @@ public class ProductServiceImpl implements ProductService {
     Category existingCategory = categoryRepository.findById(productDTO.getCategoryId())
           .orElseThrow(() -> new DataNotFoundException("Category not found with categoryID" + productDTO.getCategoryId()));
 
-    Product product = Product
-          .builder()
+    Product product = Product.builder()
+          .code(productCodeGeneratorService.generateProductCode(productDTO.getName(), productDTO.getCategoryId()))
           .name(productDTO.getName())
           .price(productDTO.getPrice())
           .description(productDTO.getDescription())
           .category(existingCategory)
+          .active(true)
           .build();
 
     return productRepository.save(product);
@@ -56,8 +62,15 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public Page<Product> getAllProducts(PageRequest pageRequest) {
-    return productRepository.findAll(pageRequest);
+  public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
+    // get list product by page and limit
+    return productRepository.findAll(pageRequest).map(product -> {
+      // Kiểm tra nếu active không phải là 1, sẽ trả về null để không có sản phẩm này
+      if (!product.getActive()) {
+        return null;
+      }
+      return ProductResponse.fromProduct(product);
+    });
   }
 
   @Override
@@ -80,7 +93,11 @@ public class ProductServiceImpl implements ProductService {
   public void deleteProduct(Long id) {
     Optional<Product> product = productRepository.findById(id);
     if (product.isPresent()) {
-      productRepository.deleteById(id);
+      Product productToDelete = product.get();
+      productToDelete.setActive(false);
+      productRepository.save(productToDelete);
+    }else{
+      throw new RuntimeException("Product not found");
     }
   }
 
@@ -97,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
           .orElseThrow(() -> new DataNotFoundException("Not found ProductID" + productImageDTO.getProductId()));
 
     // khong cho insert qua 5 anh trong 1 product
-    if (productImageRepository.findAllByProductId(productID).size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT){
+    if (productImageRepository.findAllByProductId(productID).size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
       throw new InvalidParamException("Qua so luong anh");
     }
 
@@ -106,6 +123,30 @@ public class ProductServiceImpl implements ProductService {
           .imageUrl(productImageDTO.getImageUrl())
           .build();
     return productImageRepository.save(productImage);
+  }
+
+  // insert fake data
+  @Override
+  public void createMultipleProducts(List<ProductDTO> productDTOList) throws DataNotFoundException {
+    List<Product> products = new ArrayList<>();
+    for (ProductDTO dto : productDTOList) {
+      Category existingCategory = categoryRepository.findById(dto.getCategoryId())
+            .orElseThrow(() -> new DataNotFoundException("Category not found with ID: " + dto.getCategoryId()));
+
+      Product product = Product.builder()
+            .code(dto.getCode())
+            .name(dto.getName())
+            .price(dto.getPrice())
+            .description(dto.getDescription())
+            .category(existingCategory)
+            .active(true)
+            .build();
+
+      products.add(product);
+    }
+
+    // Batch insert để tối ưu hiệu suất
+    productRepository.saveAll(products);
   }
 
 

@@ -29,7 +29,7 @@ public class OrderDTO {
   private String note;
 
   @JsonProperty("total_money")
-  private Float totalMoney;
+  private Double totalMoney;
 
   @JsonProperty("shipping_method")
   private String shippingMethod;

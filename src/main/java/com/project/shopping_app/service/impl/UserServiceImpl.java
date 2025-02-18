@@ -23,12 +23,14 @@ public class UserServiceImpl implements UserService {
   private final RoleRepository roleRepository;
 
   @Override
-  public User createUser(@RequestBody UserDTO userDTO) throws DataNotFoundException {
+  public User createUser(UserDTO userDTO) throws DataNotFoundException {
     String phoneNumber = userDTO.getPhoneNumber();
     // check phone number
     if (userRepository.existsByPhoneNumber(phoneNumber)) {
       throw new DataIntegrityViolationException("Phone number already exists");
     }
+    Role existRole = roleRepository.findById(userDTO.getRoleID())
+          .orElseThrow(() -> new DataNotFoundException("Role not found!!!"));
     User user = User.builder()
           .fullname(userDTO.getFullName())
           .phoneNumber(userDTO.getPhoneNumber())
@@ -36,13 +38,12 @@ public class UserServiceImpl implements UserService {
           .dateOfBirth(userDTO.getDateOfBirth())
           .password(userDTO.getPassword())
           .isActive(true)
+          .role(existRole)
           .facebookAccountId(userDTO.getFacebookAccountId())
           .googleAccountId(userDTO.getGoogleAccountId())
           .build();
-    Role role = roleRepository.findById(userDTO.getRoleID())
-          .orElseThrow(() -> new DataNotFoundException("Role not found!!!"));
     User newUser = userRepository.save(user);
-    newUser.setRole(role);
+    log.info("New user created: {}", newUser);
     // check xem neu co accountID thi k check password
     if(userDTO.getFacebookAccountId() == 0 && userDTO.getGoogleAccountId() == 0) {
       String password = userDTO.getPassword();

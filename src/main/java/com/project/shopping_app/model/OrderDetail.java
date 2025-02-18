@@ -33,7 +33,7 @@ public class OrderDetail {
   private int numberOfProducts;
 
   @Column(name = "total_money")
-  private double totalMoney;
+  private Double totalMoney;
 
   @Column(name = "color")
   private String color;
