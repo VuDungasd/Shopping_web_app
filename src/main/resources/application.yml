@@ -22,3 +22,7 @@ spring:
 
 api:
   prefix: api/v1
+
+jwt:
+  expiration: 604800 # 7*24*60*60 = 604800 giây
+  secretKey: "u8F5vA2A8O9Vw4sP1tY9wF6kZ1Q8oL3J7N5vM2Q9U3g="
