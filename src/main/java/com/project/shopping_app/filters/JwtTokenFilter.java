@@ -1,6 +1,7 @@
 package com.project.shopping_app.filters;
 
 import com.project.shopping_app.compoments.JwtTokenUtil;
+import com.project.shopping_app.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,27 +35,33 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                                   @NonNull HttpServletResponse response,
                                   @NonNull FilterChain filterChain)
         throws ServletException, IOException {
-    if(isBypassToken(request)){
-      filterChain.doFilter(request, response);
-    }
-    final String authHeader = request.getHeader("Authorization");
-    if(authHeader != null && authHeader.startsWith("Bearer ")) {
+    try {
+      final String authHeader = request.getHeader("Authorization");
+      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        filterChain.doFilter(request, response);
+        return;
+      }
       final String token = authHeader.substring(7);
       final String phoneNumber = jwtTokenUtil.extractPhoneNumber(token);
-
-      if(phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null){
-        UserDetails userDetails = userDetailsService.loadUserByUsername(phoneNumber);
-        if(jwtTokenUtil.validateToken(token, userDetails)){
-          UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
-                null , userDetails.getAuthorities());
+      if (phoneNumber != null
+            && SecurityContextHolder.getContext().getAuthentication() == null) {
+        User userDetails = (User) userDetailsService.loadUserByUsername(phoneNumber);
+        if (jwtTokenUtil.validateToken(token, userDetails)) {
+          UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                      userDetails, null, userDetails.getAuthorities());
           authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
           SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
       }
+      filterChain.doFilter(request, response);
+    } catch (Exception e) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }
-    filterChain.doFilter(request, response);
-
-//    filterChain.doFilter(request, response);  // enable bypass
+    if (isBypassToken(request)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
   }
 
   private Boolean isBypassToken(@NonNull HttpServletRequest request) {

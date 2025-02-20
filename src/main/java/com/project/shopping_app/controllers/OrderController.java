@@ -1,6 +1,8 @@
 package com.project.shopping_app.controllers;
 
 import com.project.shopping_app.dtos.OrderDTO;
+import com.project.shopping_app.model.Order;
+import com.project.shopping_app.repository.OrderRepository;
 import com.project.shopping_app.response.OrderListResponse;
 import com.project.shopping_app.response.OrderResponse;
 import com.project.shopping_app.response.ProductListResponse;
@@ -25,6 +27,7 @@ public class OrderController {
 
   private final OrderService orderService;
   private final ProductService productService;
+  private final OrderRepository orderRepository;
 
   @GetMapping("")
   public ResponseEntity<OrderListResponse> getAllOrders(
@@ -87,12 +90,17 @@ public class OrderController {
         @PathVariable Long id,
         @RequestBody @Valid OrderDTO orderDTO
   ) {
+    Order existingOrder = orderService.getOrderById(id);
+
     return ResponseEntity.ok("Update order successfully");
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> deleteOrder(@Valid @PathVariable Long id) {
     // xoa mem => cap nhat truong active = false
+    Order order  = orderService.getOrderById(id);
+    order.setActive(false);
+    orderRepository.save(order);
     return ResponseEntity.ok("Delete order successfully");
   }
 }

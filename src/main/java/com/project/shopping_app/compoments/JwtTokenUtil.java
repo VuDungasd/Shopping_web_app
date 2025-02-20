@@ -55,7 +55,7 @@ public class JwtTokenUtil {
     return Jwts.parserBuilder()
           .setSigningKey(getSignInKey())
           .build()
-          .parseClaimsJwt(token)
+          .parseClaimsJws(token)
           .getBody();
   }
 
@@ -78,6 +78,6 @@ public class JwtTokenUtil {
 
   public boolean validateToken(String token, UserDetails userDetails) {
     String phoneNumber = extractPhoneNumber(token);
-    return (phoneNumber.equals(userDetails.getPassword())) && !isTokenExpired(token);
+    return (phoneNumber.equals(userDetails.getUsername())) && !isTokenExpired(token);
   }
 }
