@@ -19,6 +19,7 @@ public interface ProductService {
 
   Page<ProductResponse> getAllProducts(PageRequest pageRequest);
 
+  public Page<ProductResponse> getProductByFilter(String keyword, Long categoryId, PageRequest pageRequest);
   Product updateProduct(Long id, ProductDTO productDTO) throws DataNotFoundException;
 
   void deleteProduct(Long id);

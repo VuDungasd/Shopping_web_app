@@ -63,9 +63,20 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public Page<ProductResponse> getAllProducts(PageRequest pageRequest) {
+
     // get list product by page and limit
-    return productRepository.findAll(pageRequest).map(product -> {
-      // Kiểm tra nếu active không phải là 1, sẽ trả về null để không có sản phẩm này
+    // Kiểm tra nếu active không phải là 1, sẽ trả về null để không có sản phẩm này
+    //      if (!product.getActive()) {
+    //        return null;
+    //      }
+    return productRepository.findAll(pageRequest).map(ProductResponse::fromProduct);
+  }
+
+  @Override
+  public Page<ProductResponse> getProductByFilter(String keyword, Long categoryId, PageRequest pageRequest){
+    // get product by filter from FE
+    return productRepository.searchProducts(categoryId, keyword, pageRequest).map(product -> {
+      //check active in product
       if (!product.getActive()) {
         return null;
       }

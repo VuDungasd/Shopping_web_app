@@ -95,6 +95,26 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
+<!--		Data Redis-->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<version>3.1.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+<!--		connect with database redis -->
+		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>6.2.6.RELEASE</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

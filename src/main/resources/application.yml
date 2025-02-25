@@ -19,6 +19,9 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  redis:
+    host: ${REDIS_HOST:localhost} #default to localhost
+    port: ${REDIS_PORT:6379} #port 6379 anh xa tren may
 
 api:
   prefix: api/v1
