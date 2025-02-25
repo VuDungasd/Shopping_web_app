@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 import static org.springframework.http.HttpMethod.*;
 
@@ -27,8 +30,19 @@ public class WebSecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
+//          .cors(cors -> cors.configurationSource(request -> {
+//            CorsConfiguration config = new CorsConfiguration();
+//            config.setAllowedOrigins(List.of("*")); // Cho phép tất cả
+//            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+//            config.setAllowedHeaders(List.of("*"));
+//            return config;
+//          }))
           .csrf(AbstractHttpConfigurer::disable)
           .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+//          .authorizeHttpRequests(authorizeRequests -> {
+//            authorizeRequests
+//                  .requestMatchers("%s/products/search", prefix).permitAll();
+//          });
           .authorizeHttpRequests(requests -> {
             requests
                   .requestMatchers(
@@ -36,6 +50,9 @@ public class WebSecurityConfig {
                         String.format("%s/users/login", prefix)
                   )
                   .permitAll()
+//                  .requestMatchers(GET,
+//                        String.format("%s/products/search", prefix)).permitAll()
+
                   .requestMatchers(GET,
                         String.format("%s/categories**", prefix)).hasAnyRole(Role.USER, Role.ADMIN)
 
@@ -49,7 +66,14 @@ public class WebSecurityConfig {
                         String.format("%s/categories/**", prefix)).hasAnyRole(Role.ADMIN)
 
                   .requestMatchers(GET,
-                        String.format("%s/products**", prefix)).hasAnyRole(Role.USER, Role.ADMIN)
+                        String.format("%s/products**", prefix)).permitAll()
+
+                  .requestMatchers(GET,
+                        String.format("%s/products/**", prefix)).permitAll()
+
+//                  .requestMatchers(GET,
+//                        String.format("%s/products**", prefix)).permitAll()
+
 
                   .requestMatchers(POST,
                         String.format("%s/products/**", prefix)).hasAnyRole(Role.ADMIN)
@@ -59,6 +83,7 @@ public class WebSecurityConfig {
 
                   .requestMatchers(DELETE,
                         String.format("%s/products/**", prefix)).hasAnyRole(Role.ADMIN)
+
 
                   .requestMatchers(POST,
                         String.format("%s/orders/**", prefix)).hasRole(Role.USER)

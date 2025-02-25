@@ -3,6 +3,7 @@ package com.project.shopping_app.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -11,6 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(ProductListener.class)
 public class Product extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

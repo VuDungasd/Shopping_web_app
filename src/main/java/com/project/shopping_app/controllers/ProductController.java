@@ -1,5 +1,6 @@
 package com.project.shopping_app.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.javafaker.Faker;
 import com.project.shopping_app.dtos.ProductDTO;
 import com.project.shopping_app.dtos.ProductImageDTO;
@@ -8,6 +9,7 @@ import com.project.shopping_app.model.ProductImage;
 import com.project.shopping_app.response.ProductListResponse;
 import com.project.shopping_app.response.ProductResponse;
 import com.project.shopping_app.service.ProductCodeGeneratorService;
+import com.project.shopping_app.service.ProductRedisService;
 import com.project.shopping_app.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,20 +48,35 @@ public class ProductController {
 
   private final ProductService productService;
   private final ProductCodeGeneratorService productCodeGeneratorService;
+  private final ProductRedisService productRedisService;
 
-  @GetMapping("")
-  public ResponseEntity<ProductListResponse> getAllProduct(
+  @GetMapping("/search")
+  public ResponseEntity<ProductListResponse> getAllProductByFilter(
+        @RequestParam(defaultValue = "") String keyword,
+        @RequestParam(defaultValue = "", name = "categoryId") long categoryId,
         @RequestParam("page") int page,
-        @RequestParam("limit") int limit) {
+        @RequestParam("limit") int limit
+  ) throws JsonProcessingException {
+    int totalPages = 0;
+    // get ra page, gioi han so ban ghi
     PageRequest pageRequest = PageRequest.of(
           page, limit,
           Sort.by(Sort.Direction.ASC, "createdAt").descending());
-    Page<ProductResponse> productPage = productService.getAllProducts(pageRequest);
-    // get total page
-    int totalPages = productPage.getTotalPages();
-    List<ProductResponse> products = productPage.getContent();
+
+    List<ProductResponse> productResponses = productRedisService.getAllProducts(keyword, categoryId, pageRequest);
+
+    if(productResponses == null){
+      Page<ProductResponse> productPage = productService.getProductByFilter(keyword, categoryId, pageRequest);
+      totalPages = productPage.getTotalPages();
+      productResponses = productPage.getContent();
+      productRedisService.saveAllProducts(
+             productResponses,
+            keyword,
+            categoryId,
+            pageRequest);
+    }
     return ResponseEntity.ok(ProductListResponse.builder()
-                .products(products)
+                .products(productResponses)
                 .totalProducts(totalPages)
                 .build()
     );
