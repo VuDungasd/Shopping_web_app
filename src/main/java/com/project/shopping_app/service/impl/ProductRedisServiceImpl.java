@@ -31,7 +31,11 @@ public class ProductRedisServiceImpl implements ProductRedisService {
     Sort.Order order = sort.getOrderFor("id"); // Kiểm tra order có null hay không
     String sortDirection = (order != null && order.getDirection() == Sort.Direction.ASC) ? "asc" : "desc";
 
-    return String.format("all_products:%d:%d:%s", pageNumber, pageSize, sortDirection);
+    // Đảm bảo keyword không null
+    String sanitizedKeyword = (keyword != null) ? keyword.toLowerCase().trim() : "";
+
+    return String.format("all_products:%s:%d:%d:%d:%s", sanitizedKeyword, categoryId, pageNumber, pageSize, sortDirection);
+
   }
 
   @Override
